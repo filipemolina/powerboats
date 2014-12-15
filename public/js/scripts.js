@@ -77,8 +77,30 @@ function ajustarPaginacao(data, url)
 	
 
 	if(resposta.current_page < resposta.last_page)
-		$("ul.pagination li:last-child").attr('href', url+"?page=" + (resposta.current_page + 1));
+		$("ul.pagination li:last-child a").attr('href', url+"?page=" + (resposta.current_page + 1));
 
+}
+
+function atualizarTabela(link, baseUrl)
+{
+	//Remover todas as linhas da tabela
+	zerarTabela($(".table tbody"));
+
+	var pagina;
+
+	if(!link)
+		pagina = 1
+	else
+		var pagina = obterPaginaDoLink($(link));
+
+	$.get('/usuarios/ajaxUsuarios?page='+pagina, function(data){
+		
+		//Repopular os dados da tabela
+		preencheTabela($('.table'), JSON.parse(data));
+
+		ajustarPaginacao(data, baseUrl);
+
+	});
 }
 
 $(function(){
@@ -113,6 +135,9 @@ $(function(){
 			//Limpar os campos
 			$("form.cadastro-usuario").find('input[type=text]').val('');
 
+			//Atualizar a tabela
+			atualizarTabela($("ul.pagination li.active a"), baseUrl);
+
 		});
 
 	});
@@ -140,20 +165,7 @@ $(function(){
 		if( $(this).parent('li').hasClass('disabled') )
 			return false;
 
-		//Remover todas as linhas da tabela
-		zerarTabela($(".table"));
-
-		//Fazer a chamada Ajax para obter os dados
-		var pagina = obterPaginaDoLink($(this));
-
-		$.get('/usuarios/ajaxUsuarios?page='+pagina, function(data){
-			
-			//Repopular os dados da tabela
-			preencheTabela($('.table'), JSON.parse(data));
-
-			ajustarPaginacao(data, baseUrl);
-
-		});
+		atualizarTabela($(this), baseUrl);
 
 	});
 
